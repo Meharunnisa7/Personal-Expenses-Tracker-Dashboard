@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Expense Tracker</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: linear-gradient(135deg,#eef7ff,#f9fbe7);
+  margin:0;
+}
+header {
+  background:#6aa9ff;
+  color:white;
+  text-align:center;
+  padding:15px;
+}
+.container {
+  width:90%;
+  margin:20px auto;
+  display:grid;
+  grid-template-columns:1fr 2fr;
+  gap:20px;
+}
+.card {
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.08);
+}
+input, select, button {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+}
+button {
+  background:#6aa9ff;
+  color:white;
+  border:none;
+  cursor:pointer;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+th, td {
+  padding:10px;
+  border-bottom:1px solid #eee;
+  text-align:center;
+}
+.summary {
+  margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>💰 Personal Expense Tracker</header>
+
+<div class="container">
+
+<!-- Add Expense -->
+<div class="card">
+  <h3>Add Expense</h3>
+  <input id="desc" placeholder="Description">
+  <input id="amount" type="number" placeholder="Amount">
+  <input id="date" type="date">
+  
+  <select id="category">
+    <option>Food</option>
+    <option>Transport</option>
+    <option>Shopping</option>
+    <option>Bills</option>
+    <option>Other</option>
+  </select>
+
+  <button onclick="addExpense()">Add Expense</button>
+
+  <div class="summary">
+    <h4>Total: ₹<span id="total">0</span></h4>
+  </div>
+
+  <h4>📆 Monthly Report</h4>
+  <input type="month" id="monthFilter" onchange="filterByMonth()">
+</div>
+
+<!-- Table -->
+<div class="card">
+  <h3>Expense History</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Category</th>
+        <th>Delete</th>
+      </tr>
+    </thead>
+    <tbody id="table"></tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+// Save data
+function saveData() {
+  localStorage.setItem('expenses', JSON.stringify(expenses));
+}
+
+// Add expense
+function addExpense() {
+  let desc = document.getElementById('desc').value;
+  let amount = document.getElementById('amount').value;
+  let date = document.getElementById('date').value;
+  let category = document.getElementById('category').value;
+
+  if (!desc || !amount || !date) {
+    alert("Please fill all fields");
+    return;
+  }
+
+  expenses.push({ desc, amount: +amount, date, category });
+  saveData();
+  render();
+
+  desc.value = "";
+  amount.value = "";
+  date.value = "";
+}
+
+// Render table
+function render(data = expenses) {
+  let table = document.getElementById('table');
+  table.innerHTML = "";
+
+  let total = 0;
+
+  data.forEach((e, index) => {
+    let row = table.insertRow();
+
+    row.innerHTML = `
+      <td>${e.desc}</td>
+      <td>${e.amount}</td>
+      <td>${e.date}</td>
+      <td>${e.category}</td>
+    `;
+
+    let btn = document.createElement("button");
+    btn.innerText = "X";
+
+    btn.onclick = () => {
+      expenses.splice(index, 1);
+      saveData();
+      render();
+    };
+
+    row.insertCell(4).appendChild(btn);
+
+    total += e.amount;
+  });
+
+  document.getElementById('total').innerText = total;
+}
+
+// Monthly filter
+function filterByMonth() {
+  let month = document.getElementById('monthFilter').value;
+
+  if (!month) {
+    render();
+    return;
+  }
+
+  let filtered = expenses.filter(e => e.date.startsWith(month));
+  render(filtered);
+}
+
+// Initial load
+render();
+</script>
+
+</body>
+</html>
